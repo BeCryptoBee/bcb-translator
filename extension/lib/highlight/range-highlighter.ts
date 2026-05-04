@@ -57,10 +57,14 @@ export function installTweetSegmentStylesheet(accentColor: string): void {
   if (document.getElementById(TWEET_STYLE_ID)) return;
   const style = document.createElement('style');
   style.id = TWEET_STYLE_ID;
+  // !important defends against tweet-text spans that Twitter wraps in their
+  // own classes with the same selector specificity. Without it, our active
+  // background can lose the cascade race on some layouts and the highlight
+  // is invisible even though the class is correctly applied.
   style.textContent = `
     .bcb-src-seg--active {
-      background-color: color-mix(in srgb, var(${ACCENT_VAR}, #facc15) 35%, transparent);
-      border-radius: 2px;
+      background-color: color-mix(in srgb, var(${ACCENT_VAR}, #facc15) 45%, transparent) !important;
+      border-radius: 2px !important;
     }
   `;
   document.head.appendChild(style);

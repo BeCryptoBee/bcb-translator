@@ -19,31 +19,38 @@ export function wrapTweetSegments(
   root: HTMLElement,
   segments: Array<{ src: string; tgt: string }>,
 ): void {
-  // We rebuild the projection AFTER each successful wrap because splitText
-  // invalidates the existing entries (textNode lengths change, siblings
-  // shift). Track the running projected-offset cursor so subsequent searches
-  // skip past already-wrapped territory — critical for short or repeated
-  // src strings that would otherwise re-locate to the same position.
   let cursor = 0;
+  let wrapped = 0;
+  let skipped = 0;
   for (let i = 0; i < segments.length; i++) {
     const seg = segments[i];
     if (!seg) continue;
     const proj = buildProjection(root, tweetProjectionNormalize);
     const found = locateInProjection(proj, seg.src, cursor);
     if (!found) {
-      // Not found from the current cursor — try once from 0 in case the
-      // wrap of an earlier segment shifted offsets unpredictably.
       const retry = locateInProjection(proj, seg.src, 0);
-      if (!retry) continue;
+      if (!retry) {
+        skipped += 1;
+        continue;
+      }
       cursor = retry.endProjected;
       for (const cover of retry.covers) wrapCover(cover, i);
+      wrapped += 1;
       continue;
     }
     cursor = found.endProjected;
     for (const cover of found.covers) {
       wrapCover(cover, i);
     }
+    wrapped += 1;
   }
+  console.log('[BCB] wrapTweetSegments', {
+    total: segments.length,
+    wrapped,
+    skipped,
+    rootText: (root.innerText ?? '').slice(0, 80),
+    firstSrc: segments[0]?.src.slice(0, 60),
+  });
 }
 
 function wrapCover(cover: Cover, segmentIndex: number): void {
@@ -88,6 +95,11 @@ export function setActiveSegment(
     `.${SEG_CLASS}[data-segment-index="${index}"]`,
   );
   spans.forEach((s) => s.classList.toggle(ACTIVE_CLASS, active));
+  console.log('[BCB] setActiveSegment', {
+    index,
+    active,
+    spanCount: spans.length,
+  });
 }
 
 /**
