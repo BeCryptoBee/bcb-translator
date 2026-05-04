@@ -86,10 +86,10 @@ async function runScan(onClick: OnClick): Promise<void> {
     // boundaries is FAR more important than smoothing out the occasional
     // artifact line. The model still translates each line cleanly even
     // if it contains a stray prefix/suffix from rendering.
-    const text = t.innerText.trim();
-    if (text.length < 5) continue;
+    const initialText = t.innerText.trim();
+    if (initialText.length < 5) continue;
 
-    const lang = detectLanguage(text);
+    const lang = detectLanguage(initialText);
     if (lang === settings.targetLang) continue;
 
     const wrap = document.createElement('span');
@@ -105,7 +105,12 @@ async function runScan(onClick: OnClick): Promise<void> {
       b.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        onClick(text, t, mode);
+        // Re-read text at click time so inline "Show more" expansions
+        // are picked up. Without this, long tweets translate only the
+        // truncated preview that was visible at injection time even
+        // though the user has since expanded the full text inline.
+        const live = t.isConnected ? t.innerText.trim() : '';
+        onClick(live || initialText, t, mode);
       });
       return b;
     };
