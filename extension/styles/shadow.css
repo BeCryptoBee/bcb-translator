@@ -71,6 +71,13 @@ button {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
   overflow: hidden; /* clip header corners */
   resize: both;
+  /* Pin font metrics explicitly. Without this, sites that ship aggressive
+     root styles (e.g. LinkedIn sets html { font-size: 62.5% } as part of
+     their rem-scale system) can shrink everything inside our shadow even
+     though :host { font-size } is set, because UA stylesheet defaults for
+     <pre> and other tags use em-relative sizing. */
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 /* Header bar: holds the drag handle and the close button.
@@ -174,6 +181,10 @@ button {
   min-height: 0;
   margin: 0;
   overflow: auto;
+  /* Force readable size + sans-serif regardless of host site UA-pre styles. */
+  font-size: 14px;
+  font-family: inherit;
+  line-height: 1.5;
   /* Custom thin scrollbar (Firefox) */
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
